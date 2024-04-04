@@ -1,64 +1,69 @@
 // Get the GitHub username input form
 const gitHubForm = document.getElementById('gitHubForm');
 
-// Listen for submissions on GitHub username input form
-gitHubForm.addEventListener('submit', (e) => {
+const templateDictionary = {
+    'repo': (r) => (`
+        <p><strong>Repo:</strong> ${r.name}</p> 
+        <p><strong>Description:</strong> ${r.description}</p>
+        <p><strong>URL:</strong> <a href="${r.html_url}">${r.html_url}</a></p>
+    `),
+    'commit': (c) => (`
+        <p><strong>Commit:</strong> ${c.commit.message}</p>
+        <p><strong>Author:</strong> ${c.commit.author.name}</p>
+        <p><strong>Date:</strong> ${c.commit.author.date}</p>
+    `),
+    'error': (err) => (`
+        <p><strong>No account exists with username:</strong> ${err.username}</p>
+    `)
 
-    // Prevent default form submission action
+}
+
+gitHubForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    // Get the GitHub username input field on the DOM
-    let usernameInput = document.getElementById('usernameInput');
+    gitHubUserName = getUserName();
+    gitHubUserRepo = getUserRepo();
 
-    // Get the value of the GitHub username input field
-    let gitHubUsername = usernameInput.value;
+    liTemplate = templateDictionary[gitHubUserRepo ? 'commit' : 'repo'];
 
-    // Run GitHub API function, passing in the GitHub username
-    requestUserRepos(gitHubUsername)
-        .then(response => response.json()) // parse response into json
+    (gitHubUserRepo ? requestUserCommits(gitHubUserName, gitHubUserRepo)
+                    : requestUserRepos(gitHubUserName))
+        .then(response => response.json())
         .then(data => {
-            // update html with data from github
+            let ul = document.getElementById('userResponse');
+            ul.innerHTML = '';
+
             for (let i in data) {
-                // Get the ul with id of userRepos
+                console.log(data[i]);
+                let li = document.createElement('li');
+                li.classList.add('list-group-item')
 
                 if (data.message === "Not Found") {
-                    let ul = document.getElementById('userRepos');
-
-                    // Create variable that will create li's to be added to ul
-                    let li = document.createElement('li');
-
-                    // Add Bootstrap list item class to each li
-                    li.classList.add('list-group-item')
-                    // Create the html markup for each li
-                    li.innerHTML = (`
-                <p><strong>No account exists with username:</strong> ${gitHubUsername}</p>`);
-                    // Append each li to the ul
-                    ul.appendChild(li);
+                    li.innerHTML = templateDictionary['error'](data[i]);
                 } else {
-
-                    let ul = document.getElementById('userRepos');
-
-                    // Create variable that will create li's to be added to ul
-                    let li = document.createElement('li');
-
-                    // Add Bootstrap list item class to each li
-                    li.classList.add('list-group-item')
-
-                    // Create the html markup for each li
-                    li.innerHTML = (`
-                <p><strong>Repo:</strong> ${data[i].name}</p>
-                <p><strong>Description:</strong> ${data[i].description}</p>
-                <p><strong>URL:</strong> <a href="${data[i].html_url}">${data[i].html_url}</a></p>
-            `);
-
-                    // Append each li to the ul
-                    ul.appendChild(li);
+                    li.innerHTML = liTemplate(data[i]);
                 }
+                ul.appendChild(li);
             }
         })
 })
 
+getUserName = () => {
+    let usernameInput = document.getElementById('usernameInput');
+    let gitHubUserName = usernameInput.value;
+    return gitHubUserName;
+}
+
+getUserRepo = () => {
+    let userRepoInput = document.getElementById('userRepoInput');
+    let gitHubRepo = userRepoInput.value;
+    return gitHubRepo;
+}
+
 function requestUserRepos(username) {
-    // create a variable to hold the `Promise` returned from `fetch`
     return Promise.resolve(fetch(`https://api.github.com/users/${username}/repos`));
+}
+
+function requestUserCommits(username, repo) {
+    return Promise.resolve(fetch(`https://api.github.com/repos/${username}/${repo}/commits`));
 }
