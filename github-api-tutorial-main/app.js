@@ -1,21 +1,26 @@
 // Get the GitHub username input form
 const gitHubForm = document.getElementById('gitHubForm');
 
-const templateDictionary = {
-    'repo': (r) => (`
-        <p><strong>Repo:</strong> ${r.name}</p> 
+const repoTemplate = {
+    success: (r) => (`
+        <p><strong>Repo:</strong> ${r.name}</p>
         <p><strong>Description:</strong> ${r.description}</p>
         <p><strong>URL:</strong> <a href="${r.html_url}">${r.html_url}</a></p>
     `),
-    'commit': (c) => (`
+    error: (err) => (`
+        <p><strong>No account exists with username:</strong> ${err.username}</p>
+    `)
+}
+
+const commitTemplate = {
+    success: (c) => (`
         <p><strong>Commit:</strong> ${c.commit.message}</p>
         <p><strong>Author:</strong> ${c.commit.author.name}</p>
         <p><strong>Date:</strong> ${c.commit.author.date}</p>
     `),
-    'error': (err) => (`
-        <p><strong>No account exists with username:</strong> ${err.username}</p>
+    error: (err) => (`
+        <p><strong>No repo or user exists</strong></p>
     `)
-
 }
 
 gitHubForm.addEventListener('submit', (e) => {
@@ -24,29 +29,35 @@ gitHubForm.addEventListener('submit', (e) => {
     gitHubUserName = getUserName();
     gitHubUserRepo = getUserRepo();
 
-    liTemplate = templateDictionary[gitHubUserRepo ? 'commit' : 'repo'];
+    liTemplate = gitHubUserRepo ? commitTemplate : repoTemplate;
 
     (gitHubUserRepo ? requestUserCommits(gitHubUserName, gitHubUserRepo)
                     : requestUserRepos(gitHubUserName))
         .then(response => response.json())
-        .then(data => {
-            let ul = document.getElementById('userResponse');
-            ul.innerHTML = '';
-
-            for (let i in data) {
-                console.log(data[i]);
-                let li = document.createElement('li');
-                li.classList.add('list-group-item')
-
-                if (data.message === "Not Found") {
-                    li.innerHTML = templateDictionary['error'](data[i]);
-                } else {
-                    li.innerHTML = liTemplate(data[i]);
-                }
-                ul.appendChild(li);
-            }
-        })
+        .then(data => updateUlElemets(data, liTemplate))
 })
+
+updateUlElemets = (data, liTemplate) => {
+    let ul = document.getElementById('userResponse');
+    ul.innerHTML = '';
+
+    if (data.message === "Not Found") {
+        let li = document.createElement('li');
+        li.classList.add('list-group-item')
+        li.innerHTML = liTemplate.error(data);
+        ul.appendChild(li);
+        return;
+    }
+
+    for (let i in data) {
+        let li = document.createElement('li');
+        li.classList.add('list-group-item')
+            
+        li.innerHTML = liTemplate.success(data[i]);
+        
+        ul.appendChild(li);
+    }
+}
 
 getUserName = () => {
     let usernameInput = document.getElementById('usernameInput');
