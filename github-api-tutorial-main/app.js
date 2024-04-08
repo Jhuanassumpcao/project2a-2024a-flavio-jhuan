@@ -26,8 +26,17 @@ const commitTemplate = {
 gitHubForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
+    resetFieldHighlight('usernameInput');
+    resetFieldHighlight('userRepoInput');
+
     gitHubUserName = getUserName();
     gitHubUserRepo = getUserRepo();
+
+    if (!gitHubUserName) {
+        alert('Please enter a GitHub username.');
+        highlightField('usernameInput');
+        return;
+    }
 
     liTemplate = gitHubUserRepo ? commitTemplate : repoTemplate;
 
@@ -45,6 +54,8 @@ updateUlElemets = (data, liTemplate) => {
         let li = document.createElement('li');
         li.classList.add('list-group-item')
         li.innerHTML = liTemplate.error(data);
+        alert('Please enter a repository that exists.');
+        highlightField('userRepoInput');
         ul.appendChild(li);
         return;
     }
@@ -69,6 +80,16 @@ getUserRepo = () => {
     let userRepoInput = document.getElementById('userRepoInput');
     let gitHubRepo = userRepoInput.value;
     return gitHubRepo;
+}
+
+function highlightField(fieldId) {
+    let field = document.getElementById(fieldId);
+    field.style.border = '1px solid red';
+}
+
+function resetFieldHighlight(fieldId) {
+    let field = document.getElementById(fieldId);
+    field.style.border = '';
 }
 
 function requestUserRepos(username) {
