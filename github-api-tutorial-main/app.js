@@ -1,4 +1,3 @@
-// Get the GitHub username input form
 const gitHubForm = document.getElementById('gitHubForm');
 
 const templateDictionary = {
@@ -15,55 +14,78 @@ const templateDictionary = {
     'error': (err) => (`
         <p><strong>No account exists with username:</strong> ${err.username}</p>
     `)
+};
 
-}
-
-gitHubForm.addEventListener('submit', (e) => {
+gitHubForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    gitHubUserName = getUserName();
-    gitHubUserRepo = getUserRepo();
+    resetFieldHighlight('usernameInput');
+    resetFieldHighlight('userRepoInput');
 
-    liTemplate = templateDictionary[gitHubUserRepo ? 'commit' : 'repo'];
+    const gitHubUserName = getUserName();
+    const gitHubUserRepo = getUserRepo();
 
-    (gitHubUserRepo ? requestUserCommits(gitHubUserName, gitHubUserRepo)
-                    : requestUserRepos(gitHubUserName))
-        .then(response => response.json())
-        .then(data => {
-            let ul = document.getElementById('userResponse');
-            ul.innerHTML = '';
+    if (!gitHubUserName) {
+        alert('Please enter a GitHub username.');
+        highlightField('usernameInput');
+        return;
+    }
 
-            for (let i in data) {
-                console.log(data[i]);
-                let li = document.createElement('li');
-                li.classList.add('list-group-item')
 
-                if (data.message === "Not Found") {
-                    li.innerHTML = templateDictionary['error'](data[i]);
-                } else {
-                    li.innerHTML = liTemplate(data[i]);
-                }
-                ul.appendChild(li);
+    let liTemplate = templateDictionary[gitHubUserRepo ? 'commit' : 'repo'];
+
+    try {
+        const response = gitHubUserRepo ? await requestUserCommits(gitHubUserName, gitHubUserRepo)
+                                         : await requestUserRepos(gitHubUserName);
+        const data = await response.json();
+
+        let ul = document.getElementById('userResponse');
+        ul.innerHTML = '';
+
+        for (let i in data) {
+            let li = document.createElement('li');
+            li.classList.add('list-group-item');
+
+            if (data.message === "Not Found") {
+                li.innerHTML = templateDictionary['error'](data[i]);
+                alert('Please enter a repository that exists.');
+                highlightField('userRepoInput');
+            } else {
+                li.innerHTML = liTemplate(data[i]);
             }
-        })
-})
+            ul.appendChild(li);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
 
-getUserName = () => {
+function getUserName() {
     let usernameInput = document.getElementById('usernameInput');
-    let gitHubUserName = usernameInput.value;
+    let gitHubUserName = usernameInput.value.trim();
     return gitHubUserName;
 }
 
-getUserRepo = () => {
+function getUserRepo() {
     let userRepoInput = document.getElementById('userRepoInput');
-    let gitHubRepo = userRepoInput.value;
+    let gitHubRepo = userRepoInput.value.trim();
     return gitHubRepo;
 }
 
+function highlightField(fieldId) {
+    let field = document.getElementById(fieldId);
+    field.style.border = '1px solid red';
+}
+
+function resetFieldHighlight(fieldId) {
+    let field = document.getElementById(fieldId);
+    field.style.border = '';
+}
+
 function requestUserRepos(username) {
-    return Promise.resolve(fetch(`https://api.github.com/users/${username}/repos`));
+    return fetch(`https://api.github.com/users/${username}/repos`);
 }
 
 function requestUserCommits(username, repo) {
-    return Promise.resolve(fetch(`https://api.github.com/repos/${username}/${repo}/commits`));
+    return fetch(`https://api.github.com/repos/${username}/${repo}/commits`);
 }
