@@ -9,24 +9,19 @@
     <!-- Import the Bootstrap CSS CDN -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
 </head>
 
 <body>
-<div class="mx-auto bg-light mt-5" style="width: 500px; border-radius: 1rem;">
-    <div class="w-100">
-        <div class="w-100" style="background: #21376B;border-radius: 0.5rem 0.5rem 0 0;">
-            <h3 class="text-center text-white mt-5" style="line-height: 6rem;">GitHub API</h3>
-        </div>
-        <form id="gitHubForm" class="mx-auto w-100 p-2 pr-5 pl-5">
-            <label for="usernameInput">Usuário do Github</label>
-            <input id="usernameInput" class="form-control mb-5" type="text" name="username" placeholder="GitHub Username">
-            <label for="repositorySelect">Repositorios</label>
-            <input id="userRepoInput" class="form-control mb-5" type="text" name="repository" placeholder="GitHub Repository">
-            <input type="submit" id="inputSubmit" class="btn btn-dark mb-3 w-100" value="Buscar">
-        </form>
-        <ul id="userResponse" class="list-group mx-auto mb-5" style="width: 500px"></ul>
-    </div>
-</div>
+
+<h3 class="text-center mt-5">GitHub API</h3>
+<form id="gitHubForm" class="form-inline mx-auto" style="width: 300px">
+    <input id="usernameInput" class="form-control mb-5" type="text" name="username" placeholder="GitHub Username">
+    <input id="userRepoInput" class="form-control mb-5" type="text" name="repository" placeholder="GitHub Repository">
+    <input type="submit" class="btn btn-primary ml-2 mb-5" value="Submit">
+</form>
+
+<ul id="userResponse" class="list-group mx-auto mb-5" style="width: 500px">
 
 </ul>
 
