@@ -54,8 +54,10 @@ updateUlElemets = (data, liTemplate) => {
         let li = document.createElement('li');
         li.classList.add('list-group-item')
         li.innerHTML = liTemplate.error(data);
+
         alert('Please enter a repository that exists.');
         highlightField('userRepoInput');
+        
         ul.appendChild(li);
         return;
     }
